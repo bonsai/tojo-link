@@ -1,0 +1,104 @@
+/* ===== LinkBoard — メインフィード ===== */
+
+.link-board {
+  padding: 16px;
+  padding-bottom: 100px; /* 駅ピッカー分 */
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* ヘッダー */
+.link-board__header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #f8f9fa;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.link-board__logo {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b35, #5b6abf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.link-board__post-btn {
+  padding: 8px 16px;
+  background: #5b6abf;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.link-board__post-btn:active {
+  background: #4a59a8;
+}
+
+/* 駅フィルターチップ */
+.link-board__filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.link-board__filters::-webkit-scrollbar {
+  display: none;
+}
+
+.link-board__filter-chip {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.link-board__filter-chip.active {
+  background: #5b6abf;
+  color: #fff;
+  border-color: #5b6abf;
+}
+
+/* カードリスト */
+.link-board__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ローディング */
+.link-board__loading {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+/* 空状態 */
+.link-board__empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.link-board__empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.link-board__empty-text {
+  font-size: 14px;
+}

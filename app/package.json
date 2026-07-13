@@ -1,0 +1,13 @@
+{
+  "name": "tojo-link-board",
+  "version": "0.1.0",
+  "description": "東武東上線 リンク発見ボード",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve ./src -l 3000",
+    "build": "echo 'No build step — vanilla JS, deploy /src as-is'",
+    "demo": "npx serve ./demo -l 3001"
+  },
+  "keywords": ["tojo", "station", "link-board", "firebase"],
+  "license": "MIT"
+}

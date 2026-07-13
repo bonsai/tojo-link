@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#5b6abf" />
+  <title>🚃 東上リンク — 駅でつながる、リンク発見ボード</title>
+  <meta name="description" content="東武東上線沿線のゆるい情報ストック。カメラ＋駅名だけで投稿、AIがまとめて文化を育てる。" />
+
+  <!-- OG -->
+  <meta property="og:title" content="東上リンク" />
+  <meta property="og:description" content="駅でつながる、リンク発見ボード" />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚃</text></svg>" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles/reset.css" />
+  <link rel="stylesheet" href="/styles/app.css" />
+  <link rel="stylesheet" href="/components/StationPicker/StationPicker.css" />
+  <link rel="stylesheet" href="/components/LinkCard/LinkCard.css" />
+  <link rel="stylesheet" href="/components/LinkBoard/LinkBoard.css" />
+  <link rel="stylesheet" href="/components/PostForm/PostForm.css" />
+  <link rel="stylesheet" href="/components/CustomRecommend/CustomRecommend.css" />
+
+  <style>
+    /* デモ用: モックUI表示用インラインスタイル */
+    .demo-wrapper {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #f8f9fa;
+      position: relative;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-wrapper">
+    <!-- ヘッダー -->
+    <header class="app-header">
+      <div class="app-logo">🚃 東上リンク</div>
+      <nav class="app-nav">
+        <button class="app-nav-btn" title="検索">🔍</button>
+        <button class="app-nav-btn" title="保存済み">📍</button>
+      </nav>
+    </header>
+
+    <!-- メイン -->
+    <main class="app-main">
+      <!-- カスタム推薦 -->
+      <section id="custom-recommend"></section>
+
+      <!-- リンクボード -->
+      <section id="link-board">
+        <div class="link-board">
+          <header class="link-board__header">
+            <div class="link-board__logo">🚃 東上リンク</div>
+            <button class="link-board__post-btn" id="demo-post-btn">＋ 投稿する</button>
+          </header>
+
+          <div class="link-board__filters">
+            <button class="link-board__filter-chip active" data-filter="all">すべて</button>
+            <button class="link-board__filter-chip" data-filter="TJ-13">鶴瀬</button>
+            <button class="link-board__filter-chip" data-filter="TJ-01">池袋</button>
+            <button class="link-board__filter-chip" data-filter="TJ-17">川越</button>
+            <button class="link-board__filter-chip" data-filter="TJ-10">志木</button>
+            <button class="link-board__filter-chip" data-filter="TJ-26">東松山</button>
+          </div>
+
+          <div class="link-board__list" id="demo-board-list">
+            <!-- JSで描画 -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 駅ピッカー -->
+    <div id="station-picker"></div>
+
+    <!-- 投稿フォーム -->
+    <div id="post-form-overlay"></div>
+  </div>
+
+  <!-- ===== デモ用: バニラJSモック ===== -->
+  <script>
+    // ダミー投稿データ
+    const DEMO_POSTS = [
+      {
+        id: 'post-001',
+        stationId: 'TJ-13',
+        stationName: '鶴瀬',
+        title: '鶴瀬駅徒歩5分🌸 甘酒＆麹カフェ Lesson開催中',
+        url: 'https://example.com/koji-cafe-tsuruse',
+        ogTitle: '麹カフェ つるせ — 甘酒・麹スイーツ・レッスン',
+        ogDesc: '6種類の麹を使って、1day Lessonを開催。甘酒や麹調味料を作ってみませんか？',
+        ogImage: 'https://picsum.photos/seed/koji/120/120',
+        tags: ['麹', '甘酒', 'レッスン', '鶴瀬'],
+        clicks: 42,
+        commonUsers: 5,
+        createdAt: Date.now() - 1000 * 60 * 120
+      },
+      {
+        id: 'post-002',
+        stationId: 'TJ-01',
+        stationName: '池袋',
+        title: '英会話カフェ参加者募集 🇬🇧 池袋〜川越沿線',
+        url: 'https://example.com/english-cafe-tojo',
+        ogTitle: '東上線沿線 英会話カフェ — 気軽に練習しよう',
+        ogDesc: 'カフェで英語の練習しませんか？初心者歓迎。毎週土曜開催。',
+        ogImage: null,
+        tags: ['英会話', '募集', '池袋'],
+        clicks: 89,
+        commonUsers: 12,
+        createdAt: Date.now() - 1000 * 60 * 60 * 5
+      },
+      {
+        id: 'post-003',
+        stationId: 'TJ-17',
+        stationName: '川越',
+        title: '川越のレコード喫茶 🎵 アナログ盤 1000枚以上',
+        url: 'https://example.com/record-cafe-kawagoe',
+        ogTitle: 'レコード喫茶 小江戸 — 川越で過ごすアナログ時間',
+        ogDesc: 'トッド・ラングレンからビル・エヴァンスまで。コーヒーとレコードの休日。',
+        ogImage: 'https://picsum.photos/seed/record/120/120',
+        tags: ['レコード', '喫茶店', '川越', '音楽'],
+        clicks: 156,
+        commonUsers: 23,
+        createdAt: Date.now() - 1000 * 60 * 60 * 24
+      },
+      {
+        id: 'post-004',
+        stationId: 'TJ-10',
+        stationName: '志木',
+        title: '志木駅前の隠れ家パン屋 🥐 朝6時営業',
+        url: 'https://example.com/bakery-shiki',
+        ogTitle: 'ブーランジェリー 志木 — 朝のパン、夜のワイン',
+        ogDesc: '天然酵母・国産小麦。朝6時から営業。夜はワインバーに早変わり。',
+        tags: ['パン', '隠れ家', '志木'],
+        clicks: 67,
+        commonUsers: 8,
+        createdAt: Date.now() - 1000 * 60 * 60 * 3
+      },
+      {
+        id: 'post-005',
+        stationId: 'TJ-26',
+        stationName: '東松山',
+        title: '東松山やきとり祭り情報 🍢 2026年秋開催',
+        url: 'https://example.com/yakitori-higashimatsuyama',
+        ogTitle: '東松山やきとり祭り — 埼玉県を代表するB級グルメ',
+        ogDesc: '醤油ベースの甘辛いたれが特徴。毎年10月開催。',
+        ogImage: 'https://picsum.photos/seed/yakitori/120/120',
+        tags: ['グルメ', 'イベント', '東松山'],
+        clicks: 203,
+        commonUsers: 31,
+        createdAt: Date.now() - 1000 * 60 * 60 * 8
+      }
+    ];
+
+    // 時刻フォーマット
+    function timeAgo(ts) {
+      const diff = Date.now() - ts;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'たった今';
+      if (mins < 60) return `${mins}分前`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}時間前`;
+      return `${Math.floor(hours / 24)}日前`;
+    }
+
+    // カードHTML生成
+    function renderCard(post) {
+      const isSaved = localStorage.getItem('tojo_saved')?.includes(post.id);
+      return `
+        <div class="link-card" data-card-id="${post.id}">
+          <div class="link-card__header">
+            <span class="link-card__station">${post.stationId} ${post.stationName}</span>
+            <span class="link-card__time">${timeAgo(post.createdAt)}</span>
+          </div>
+          <div class="link-card__title">${post.title}</div>
+          <a href="${post.url}" target="_blank" rel="noopener" class="link-card__preview">
+            <img class="link-card__favicon" src="https://www.google.com/s2/favicons?domain=${new URL(post.url).hostname}&sz=32" alt="" />
+            <div class="link-card__og">
+              <div class="link-card__og-title">${post.ogTitle || post.title}</div>
+              <div class="link-card__og-desc">${post.ogDesc || ''}</div>
+            </div>
+            ${post.ogImage ? `<img class="link-card__og-image" src="${post.ogImage}" alt="" loading="lazy" />` : ''}
+          </a>
+          ${post.tags && post.tags.length > 0 ? `
+            <div class="link-card__tags">
+              ${post.tags.map(t => `<span class="link-card__tag">#${t}</span>`).join('')}
+            </div>
+          ` : ''}
+          <div class="link-card__actions">
+            <span class="link-card__action">
+              <span class="link-card__action-icon">🔗</span>
+              ${post.clicks}
+            </span>
+            ${post.commonUsers ? `
+              <span class="link-card__action">
+                <span class="link-card__action-icon">👥</span>
+                共通 ${post.commonUsers}人
+              </span>
+            ` : ''}
+            <button class="link-card__save-btn ${isSaved ? 'saved' : ''}" data-save="${post.id}">
+              ${isSaved ? '✓ 保存済' : '📍 行ってみたい'}
+            </button>
+          </div>
+          ${post.commonUsers > 5 ? `
+            <div class="link-card__common-users">
+              👥 #${post.tags?.[0] || post.stationName} に興味がある人と共通しています
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // 推薦カードHTML
+    function renderRecommendItem(post, icon) {
+      return `
+        <div class="custom-recommend__item" data-rec-url="${post.url}">
+          <span class="custom-recommend__icon">${icon}</span>
+          <div class="custom-recommend__content">
+            <div class="custom-recommend__text">${post.title}</div>
+            <div class="custom-recommend__sub">${post.stationId} ${post.stationName} · ${post.tags?.slice(0,2).map(t=>'#'+t).join(' ') || ''}</div>
+          </div>
+          ${post.commonUsers > 5 ? `<span class="custom-recommend__badge">共通${post.commonUsers}人</span>` : ''}
+        </div>
+      `;
+    }
+
+    // 初期描画
+    function render() {
+      // 推薦
+      const recommendEl = document.querySelector('#custom-recommend');
+      recommendEl.innerHTML = `
+        <div class="custom-recommend">
+          <div class="custom-recommend__title">✨ あなたへのおすすめ</div>
+          <div class="custom-recommend__list">
+            ${DEMO_POSTS.slice(0, 3).map((p, i) => renderRecommendItem(p, ['🎯', '🔥', '💡'][i])).join('')}
+          </div>
+        </div>
+      `;
+
+      // ボード
+      const listEl = document.querySelector('#demo-board-list');
+      listEl.innerHTML = DEMO_POSTS.map(p => renderCard(p)).join('');
+    }
+
+    // イベントバインディング
+    function bindEvents() {
+      // 保存ボタン
+      document.addEventListener('click', (e) => {
+        if (e.target.dataset.save) {
+          const postId = e.target.dataset.save;
+          let saved = JSON.parse(localStorage.getItem('tojo_saved') || '[]');
+          const isSaved = saved.includes(postId);
+
+          if (isSaved) {
+            saved = saved.filter(id => id !== postId);
+            e.target.classList.remove('saved');
+            e.target.textContent = '📍 行ってみたい';
+          } else {
+            saved.push(postId);
+            e.target.classList.add('saved');
+            e.target.textContent = '✓ 保存済';
+            if (navigator.vibrate) navigator.vibrate(20);
+          }
+
+          localStorage.setItem('tojo_saved', JSON.stringify(saved));
+        }
+
+        // 推薦クリック
+        if (e.target.closest('.custom-recommend__item')) {
+          const url = e.target.closest('.custom-recommend__item').dataset.recUrl;
+          if (url) window.open(url, '_blank');
+        }
+
+        // フィルターチップ
+        if (e.target.classList.contains('link-board__filter-chip')) {
+          document.querySelectorAll('.link-board__filter-chip').forEach(c => c.classList.remove('active'));
+          e.target.classList.add('active');
+          const filter = e.target.dataset.filter;
+          const listEl = document.querySelector('#demo-board-list');
+          const filtered = filter === 'all' ? DEMO_POSTS : DEMO_POSTS.filter(p => p.stationId === filter);
+          listEl.innerHTML = filtered.map(p => renderCard(p)).join('');
+        }
+      });
+
+      // 投稿ボタン
+      document.querySelector('#demo-post-btn')?.addEventListener('click', () => {
+        showToast('📎 投稿機能は準備中です！');
+      });
+    }
+
+    // トースト
+    function showToast(msg) {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // 実行
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+      bindEvents();
+    });
+  </script>
+</body>
+</html>

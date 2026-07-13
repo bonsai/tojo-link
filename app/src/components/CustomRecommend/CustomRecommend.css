@@ -1,0 +1,74 @@
+/* ===== CustomRecommend — カスタム3件推薦 ===== */
+
+.custom-recommend {
+  padding: 16px;
+  background: linear-gradient(135deg, #fff8e1, #f8f9fa);
+  margin-bottom: 16px;
+  border-radius: 12px;
+}
+
+.custom-recommend__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #8d6e00;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-recommend__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-recommend__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.custom-recommend__item:active {
+  transform: scale(0.98);
+}
+
+.custom-recommend__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.custom-recommend__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-recommend__text {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-recommend__sub {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.custom-recommend__badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  background: #ff6b35;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
+}

@@ -1,0 +1,112 @@
+# === DB data (ソースとデータの分離) ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === 個人情報・クレデンシャル ===
+client_secret_*.json
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+rag-credentials*.json
+master.key
+.env
+.env.*
+!.env.example
+**/token.json
+**/token.pickle
+**/oauth*.json
+**/auth_token.ts
+**/exchange_token.ts
+# ソースコード内のAPIキー直書きは手動除去必要
+# → executive-pipeline/server.py, notion/direct_test.py, etc.
+
+# === Node ===
+node_modules/
+bun.lock
+bun.lockb
+package-lock.json
+pnpm-lock.yaml
+.yarn/
+
+# === Python ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# === Go ===
+vendor/
+*.exe
+*.test
+*.out
+
+# === Rust ===
+target/
+Cargo.lock
+
+# === Java ===
+*.class
+*.jar
+build/
+.gradle/
+
+# === .NET ===
+bin/
+obj/
+*.user
+
+# === OS ===
+Thumbs.db
+desktop.ini
+.DS_Store
+.picasa.ini
+*.swp
+*.swo
+*~
+
+# === IDE / Tool-specific ===
+.vscode/
+.idea/
+*.suo
+*.sln.docstates
+.lingma/
+.kiro/
+.codex-local/
+
+# === 環境・ランタイムキャッシュ ===
+.qwen/
+.wrangler/
+.playwright-mcp/
+.bonsai-profile/
+
+# === プロジェクト管理 ===
+.claude/
+.hermes/
+.meta/
+
+# === Build artifacts ===
+dist/
+build/
+*.tsbuildinfo
+
+# === Temp ===
+tmp/
+temp_state.db
+
+# === Wrangler (Cloudflare) ===
+*.wrangler
+
+# === MEGA sync artifacts ===
+.megaignore
+# Keep .db schema/seed SQL files (not the binaries)
+sql/*.db
+!sql/*.schema.sql
+!sql/*.seed.sql
+!sql/*.sql
