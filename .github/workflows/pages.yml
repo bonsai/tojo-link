@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare site data
+        run: mkdir -p docs/data/dj-bars && cp data/dj-bars/tobu-tojo-dj-bars.jsonl docs/data/dj-bars/tobu-tojo-dj-bars.jsonl
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
