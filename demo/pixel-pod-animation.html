@@ -3,40 +3,53 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pixel Pod｜JSON → Animation</title>
+<title>Pixel Pod｜JSON Animation Editor</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:#111;color:#eee}
-*{box-sizing:border-box}body{margin:0}.wrap{max-width:1000px;margin:auto;padding:20px}
-header{padding:22px;border-radius:18px;background:#202020;margin-bottom:16px}h1{margin:0 0 6px;font-size:26px}.sub{color:#aaa}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:#1b1b1b;border:1px solid #333;border-radius:18px;padding:16px}.stage{min-height:420px;display:grid;place-items:center;background:#f4ecd8;border-radius:14px;image-rendering:pixelated}
-canvas{width:min(92%,560px);height:auto;image-rendering:pixelated;image-rendering:crisp-edges}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}button,input{font:inherit}button{border:0;border-radius:10px;padding:9px 13px;background:#eee;color:#111;cursor:pointer}.range{flex:1;min-width:160px}.badge{display:inline-block;background:#333;border-radius:999px;padding:5px 9px;font-size:12px;color:#bbb}
-pre{margin:0;max-height:420px;overflow:auto;background:#101010;border-radius:12px;padding:14px;color:#b9df75;font-size:12px;line-height:1.45}footer{margin-top:14px;color:#777;font-size:12px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}.stage{min-height:300px}}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1180px;margin:auto;padding:18px}
+header{padding:20px;border-radius:18px;background:#202020;margin-bottom:14px}h1{margin:0 0 5px;font-size:25px}.sub{color:#aaa}
+.grid{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(320px,1.1fr);gap:14px}.panel{background:#1b1b1b;border:1px solid #333;border-radius:18px;padding:14px}.stage{min-height:430px;display:grid;place-items:center;background:#f4ecd8;border-radius:13px;image-rendering:pixelated}
+canvas{width:min(92%,520px);height:auto;image-rendering:pixelated;image-rendering:crisp-edges}.controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:9px;padding:9px 12px;background:#eee;color:#111;cursor:pointer}.range{flex:1;min-width:130px}.badge{display:inline-block;background:#333;border-radius:999px;padding:5px 9px;font-size:12px;color:#bbb}
+textarea{width:100%;height:430px;resize:vertical;background:#0d0d0d;color:#c8ed88;border:1px solid #3b3b3b;border-radius:12px;padding:13px;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;outline:none}textarea:focus{border-color:#888}.toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:9px}.status{font-size:12px;color:#aaa;margin-left:auto}.ok{color:#aee58a}.err{color:#ff8d8d}
+.help{font-size:12px;color:#888;line-height:1.5;margin-top:9px}footer{margin-top:13px;color:#666;font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.stage{min-height:300px}textarea{height:360px}.status{width:100%;margin-left:0}}
 </style>
 </head>
 <body><div class="wrap">
-<header><h1>🟩 Pixel Pod｜JSON → Animation</h1><div class="sub">元画像をドット絵として再構成し、フレームデータをJSONで管理する実験</div></header>
+<header><h1>🟩 Pixel Pod｜JSON Animation Editor</h1><div class="sub">JSONを編集すると、その場でドット絵とアニメーションが更新されます</div></header>
 <div class="grid">
-<section class="panel"><div class="stage"><canvas id="screen" width="256" height="256"></canvas></div>
+<section class="panel">
+<div class="stage"><canvas id="screen" width="256" height="256"></canvas></div>
 <div class="controls"><button id="play">▶ 再生</button><button id="prev">◀</button><button id="next">▶</button><input id="frame" class="range" type="range" min="0" max="7" value="0"><span id="label" class="badge"></span></div>
 </section>
-<section class="panel"><div style="margin-bottom:10px"><span class="badge">8 frames</span> <span class="badge">120ms</span> <span class="badge">32×32</span></div><pre id="json"></pre></section>
-</div><footer>JSONはHTML内のデータ。画像ファイルは使わず、Canvasのピクセルグリッドから描画しています。</footer>
+<section class="panel">
+<div class="toolbar"><button id="apply">✓ JSONを反映</button><button id="format">整形</button><button id="reset">初期データ</button><span id="status" class="status">編集できます</span></div>
+<textarea id="json" spellcheck="false"></textarea>
+<div class="help">形式：<b>width / height / palette / loop / frames[].grid</b>。gridは1文字＝1ピクセル。<b>.</b>は透明です。framesのdelayを変えると速度も変わります。</div>
+</section>
+</div>
+<footer>外部画像なし。CanvasでJSONのピクセルデータを直接描画しています。</footer>
 </div>
 <script>
-const palette={".":null,"B":"#2b1f17","D":"#5a3a22","G":"#6aaa4f","L":"#b6d978"};
-const base=[
-"................................","...........BBBBB................",".........BB.....BB..............",".......BB.........BBB...........","......B..............BB.........",".....B.................B........","....B..................B.......","...B....DDDDDD........B........","..B...DDGGGGGGDD........B......","..B..DDGGGGGGGGDD.......B......","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B...DDGGGGGGDD........B......","...B....DDDDDD..........B......","....B....................B.....",".....B...................B.....","......B................BB......",".......BB..............B.......","........BBB..........BB........","...........B........B..........","............BBBBBBBB...........","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","................................","................................","................................","................................"];
-function shifted(frame){const dx=[0,1,1,0,-1,-1,0,1][frame],dy=[0,-1,0,1,1,0,-1,0][frame];return base.map((row,y)=>row.split('').map((c,x)=>c==='.'?c:(x>=2&&x<30&&y>=2&&y<30?c:c)).join('')).map((row,y)=>{if(y<2||y>29)return row;return '.'.repeat(Math.max(0,dx))+row.slice(0,32-Math.max(0,dx));});}
-const frames=Array.from({length:8},(_,i)=>({name:`frame_${i}`,delay:120,grid:base}));
-const data={width:32,height:32,palette,loop:true,frames};
-const canvas=document.querySelector('#screen'),ctx=canvas.getContext('2d'),slider=document.querySelector('#frame'),label=document.querySelector('#label'),json=document.querySelector('#json'),play=document.querySelector('#play');
-json.textContent=JSON.stringify(data,null,2);
-let current=0,running=false,timer=null;
-function draw(){ctx.clearRect(0,0,256,256);ctx.fillStyle='#f4ecd8';ctx.fillRect(0,0,256,256);const grid=frames[current].grid;const s=8;for(let y=0;y<32;y++)for(let x=0;x<32;x++){const c=palette[grid[y][x]];if(c){ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)}}ctx.strokeStyle='rgba(0,0,0,.035)';for(let i=0;i<=32;i++){ctx.beginPath();ctx.moveTo(i*s,0);ctx.lineTo(i*s,256);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*s);ctx.lineTo(256,i*s);ctx.stroke()}slider.value=current;label.textContent=`${current+1} / ${frames.length}`}
-function step(n){current=(current+n+frames.length)%frames.length;draw()}
-function start(){if(running)return;running=true;play.textContent='⏸ 停止';timer=setInterval(()=>step(1),frames[current].delay)}
-function stop(){running=false;play.textContent='▶ 再生';clearInterval(timer);timer=null}
-play.onclick=()=>running?stop():start();document.querySelector('#prev').onclick=()=>{stop();step(-1)};document.querySelector('#next').onclick=()=>{stop();step(1)};slider.oninput=e=>{stop();current=+e.target.value;draw()};draw();
+const initial={width:32,height:32,palette:{".":null,"B":"#2b1f17","D":"#5a3a22","G":"#6aaa4f","L":"#b6d978"},loop:true,frames:[
+{name:"frame_0",delay:160,grid:["................................","...........BBBBB................",".........BB.....BB..............",".......BB.........BBB...........","......B..............BB.........",".....B.................B........","....B..................B........","...B....DDDDDD........B........","..B...DDGGGGGGDD........B......","..B..DDGGGGGGGGDD.......B......","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B...DDGGGGGGDD........B......","...B....DDDDDD..........B......","....B....................B.....",".....B...................B.....","......B................BB......",".......BB..............B.......","........BBB..........BB........","...........B........B..........","............BBBBBBBB...........","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","................................","................................","................................","................................"]},
+{name:"frame_1",delay:160,grid:["................................","...........BBBBB................",".........BB.....BB..............",".......BB.........BBB...........","......B..............BB.........",".....B.................B........","....B..................B.......","...B....DDDDDD........B........","..B...DDGGGGGGDD........B......","..B..DDGGGGGGGGDD.......B......","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B...DDGGGGGGDD........B......","...B....DDDDDD..........B......","....B....................B.....",".....B...................B.....","......B................BB......",".......BB..............B.......","........BBB..........BB........","...........B........B..........","............BBBBBBBB...........","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","................................","................................","................................","................................"]}
+]};
+// 初期データを8フレームに増やす。編集対象はJSONなので、ここから自由に増減できます。
+initial.frames=Array.from({length:8},(_,i)=>({...initial.frames[i%2],name:`frame_${i}`,delay:120+i%3*20,grid:initial.frames[i%2].grid}));
+const canvas=document.querySelector('#screen'),ctx=canvas.getContext('2d'),editor=document.querySelector('#json'),slider=document.querySelector('#frame'),label=document.querySelector('#label'),status=document.querySelector('#status');
+let data=structuredClone(initial),current=0,running=false,timer=null;
+editor.value=JSON.stringify(data,null,2);
+function validate(d){if(!d||!Number.isInteger(d.width)||!Number.isInteger(d.height)||!d.palette||!Array.isArray(d.frames)||!d.frames.length)throw Error('width / height / palette / frames が必要です');d.frames.forEach((f,i)=>{if(!Array.isArray(f.grid)||f.grid.length!==d.height)throw Error(`frame ${i}: gridの行数がheightと違います`);f.grid.forEach((r,y)=>{if(typeof r!=='string'||r.length!==d.width)throw Error(`frame ${i}: ${y+1}行目の長さがwidthと違います`)});if(typeof f.delay!=='number'||f.delay<1)throw Error(`frame ${i}: delayは1以上の数値にしてください`)});return true}
+function draw(){const w=data.width,h=data.height,s=Math.floor(256/Math.max(w,h)),ox=(256-w*s)/2,oy=(256-h*s)/2;ctx.clearRect(0,0,256,256);ctx.fillStyle='#f4ecd8';ctx.fillRect(0,0,256,256);const grid=data.frames[current].grid;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const c=data.palette[grid[y][x]];if(c){ctx.fillStyle=c;ctx.fillRect(ox+x*s,oy+y*s,s,s)}}slider.max=Math.max(0,data.frames.length-1);slider.value=current;label.textContent=`${current+1} / ${data.frames.length}`}
+function step(n){current=(current+n+data.frames.length)%data.frames.length;draw()}
+function stop(){running=false;document.querySelector('#play').textContent='▶ 再生';clearTimeout(timer);timer=null}
+function tick(){if(!running)return;step(1);timer=setTimeout(tick,data.frames[current].delay)}
+function start(){if(running)return;running=true;document.querySelector('#play').textContent='⏸ 停止';timer=setTimeout(tick,data.frames[current].delay)}
+function applyJSON(){try{const d=JSON.parse(editor.value);validate(d);data=d;current=Math.min(current,data.frames.length-1);status.textContent=`✓ 反映しました（${data.frames.length} frames）`;status.className='status ok';draw()}catch(e){status.textContent='⚠ '+e.message;status.className='status err'}}
+document.querySelector('#apply').onclick=()=>{stop();applyJSON()};document.querySelector('#format').onclick=()=>{try{const d=JSON.parse(editor.value);editor.value=JSON.stringify(d,null,2);status.textContent='整形しました';status.className='status ok'}catch(e){status.textContent='⚠ JSONが壊れています';status.className='status err'}};document.querySelector('#reset').onclick=()=>{stop();data=structuredClone(initial);editor.value=JSON.stringify(data,null,2);current=0;status.textContent='初期データに戻しました';status.className='status ok';draw()};
+document.querySelector('#play').onclick=()=>running?stop():start();document.querySelector('#prev').onclick=()=>{stop();step(-1)};document.querySelector('#next').onclick=()=>{stop();step(1)};slider.oninput=e=>{stop();current=+e.target.value;draw()};
+// Ctrl/Cmd+EnterでもJSONを反映
+editor.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();stop();applyJSON()}});draw();
 </script>
 </body></html>
