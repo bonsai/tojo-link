@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Pod｜JSON → Animation</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:#111;color:#eee}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1000px;margin:auto;padding:20px}
+header{padding:22px;border-radius:18px;background:#202020;margin-bottom:16px}h1{margin:0 0 6px;font-size:26px}.sub{color:#aaa}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:#1b1b1b;border:1px solid #333;border-radius:18px;padding:16px}.stage{min-height:420px;display:grid;place-items:center;background:#f4ecd8;border-radius:14px;image-rendering:pixelated}
+canvas{width:min(92%,560px);height:auto;image-rendering:pixelated;image-rendering:crisp-edges}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}button,input{font:inherit}button{border:0;border-radius:10px;padding:9px 13px;background:#eee;color:#111;cursor:pointer}.range{flex:1;min-width:160px}.badge{display:inline-block;background:#333;border-radius:999px;padding:5px 9px;font-size:12px;color:#bbb}
+pre{margin:0;max-height:420px;overflow:auto;background:#101010;border-radius:12px;padding:14px;color:#b9df75;font-size:12px;line-height:1.45}footer{margin-top:14px;color:#777;font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.stage{min-height:300px}}
+</style>
+</head>
+<body><div class="wrap">
+<header><h1>🟩 Pixel Pod｜JSON → Animation</h1><div class="sub">元画像をドット絵として再構成し、フレームデータをJSONで管理する実験</div></header>
+<div class="grid">
+<section class="panel"><div class="stage"><canvas id="screen" width="256" height="256"></canvas></div>
+<div class="controls"><button id="play">▶ 再生</button><button id="prev">◀</button><button id="next">▶</button><input id="frame" class="range" type="range" min="0" max="7" value="0"><span id="label" class="badge"></span></div>
+</section>
+<section class="panel"><div style="margin-bottom:10px"><span class="badge">8 frames</span> <span class="badge">120ms</span> <span class="badge">32×32</span></div><pre id="json"></pre></section>
+</div><footer>JSONはHTML内のデータ。画像ファイルは使わず、Canvasのピクセルグリッドから描画しています。</footer>
+</div>
+<script>
+const palette={".":null,"B":"#2b1f17","D":"#5a3a22","G":"#6aaa4f","L":"#b6d978"};
+const base=[
+"................................","...........BBBBB................",".........BB.....BB..............",".......BB.........BBB...........","......B..............BB.........",".....B.................B........","....B..................B.......","...B....DDDDDD........B........","..B...DDGGGGGGDD........B......","..B..DDGGGGGGGGDD.......B......","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B..DGGGGGGGGGGD.......B.....","..B...DDGGGGGGDD........B......","...B....DDDDDD..........B......","....B....................B.....",".....B...................B.....","......B................BB......",".......BB..............B.......","........BBB..........BB........","...........B........B..........","............BBBBBBBB...........","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","............B...B.............","................................","................................","................................","................................"];
+function shifted(frame){const dx=[0,1,1,0,-1,-1,0,1][frame],dy=[0,-1,0,1,1,0,-1,0][frame];return base.map((row,y)=>row.split('').map((c,x)=>c==='.'?c:(x>=2&&x<30&&y>=2&&y<30?c:c)).join('')).map((row,y)=>{if(y<2||y>29)return row;return '.'.repeat(Math.max(0,dx))+row.slice(0,32-Math.max(0,dx));});}
+const frames=Array.from({length:8},(_,i)=>({name:`frame_${i}`,delay:120,grid:base}));
+const data={width:32,height:32,palette,loop:true,frames};
+const canvas=document.querySelector('#screen'),ctx=canvas.getContext('2d'),slider=document.querySelector('#frame'),label=document.querySelector('#label'),json=document.querySelector('#json'),play=document.querySelector('#play');
+json.textContent=JSON.stringify(data,null,2);
+let current=0,running=false,timer=null;
+function draw(){ctx.clearRect(0,0,256,256);ctx.fillStyle='#f4ecd8';ctx.fillRect(0,0,256,256);const grid=frames[current].grid;const s=8;for(let y=0;y<32;y++)for(let x=0;x<32;x++){const c=palette[grid[y][x]];if(c){ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)}}ctx.strokeStyle='rgba(0,0,0,.035)';for(let i=0;i<=32;i++){ctx.beginPath();ctx.moveTo(i*s,0);ctx.lineTo(i*s,256);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*s);ctx.lineTo(256,i*s);ctx.stroke()}slider.value=current;label.textContent=`${current+1} / ${frames.length}`}
+function step(n){current=(current+n+frames.length)%frames.length;draw()}
+function start(){if(running)return;running=true;play.textContent='⏸ 停止';timer=setInterval(()=>step(1),frames[current].delay)}
+function stop(){running=false;play.textContent='▶ 再生';clearInterval(timer);timer=null}
+play.onclick=()=>running?stop():start();document.querySelector('#prev').onclick=()=>{stop();step(-1)};document.querySelector('#next').onclick=()=>{stop();step(1)};slider.oninput=e=>{stop();current=+e.target.value;draw()};draw();
+</script>
+</body></html>
